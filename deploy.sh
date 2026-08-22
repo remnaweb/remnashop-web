@@ -207,13 +207,63 @@ compose_up() {
 }
 
 find_caddyfile() {
-  local f
-  for f in /etc/caddy/Caddyfile /opt/caddy/Caddyfile /opt/remnashop/Caddyfile; do
+  local f name src dest
+  if [ -n "${CADDYFILE:-}" ]; then
+    if [ -f "$CADDYFILE" ]; then
+      printf '%s\n' "$CADDYFILE"
+      return 0
+    fi
+    warn "CADDYFILE=${CADDYFILE} — файл не найден"
+  fi
+  for f in \
+    /etc/caddy/Caddyfile \
+    /opt/caddy/Caddyfile \
+    /opt/remnashop/Caddyfile \
+    /opt/remnawave/caddy/Caddyfile \
+    /opt/remnawave/Caddyfile
+  do
     if [ -f "$f" ]; then
       printf '%s\n' "$f"
       return 0
     fi
   done
+  f="$(find /opt /etc -name Caddyfile -type f 2>/dev/null | head -n1 || true)"
+  if [ -n "$f" ] && [ -f "$f" ]; then
+    printf '%s\n' "$f"
+    return 0
+  fi
+  name="$(docker ps --format '{{.Names}}' 2>/dev/null | grep -i caddy | head -n1 || true)"
+  if [ -n "$name" ]; then
+    src="$(docker inspect "$name" --format '{{range .Mounts}}{{if or (eq .Destination "/etc/caddy/Caddyfile") (eq .Destination "/config/Caddyfile")}}{{.Source}}{{end}}{{end}}' 2>/dev/null || true)"
+    if [ -n "$src" ] && [ -f "$src" ]; then
+      printf '%s\n' "$src"
+      return 0
+    fi
+    dest="$(docker inspect "$name" --format '{{range .Mounts}}{{if eq .Destination "/etc/caddy"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || true)"
+    if [ -n "$dest" ] && [ -f "${dest}/Caddyfile" ]; then
+      printf '%s\n' "${dest}/Caddyfile"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+wait_http() {
+  local url="$1"
+  local i=0
+  local code="000"
+  while [ "$i" -lt 40 ]; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$url" 2>/dev/null || true)"
+    case "$code" in
+      200|301|302|303|307|308)
+        printf '%s\n' "$code"
+        return 0
+        ;;
+    esac
+    i=$((i + 1))
+    sleep 1
+  done
+  printf '%s\n' "${code:-000}"
   return 1
 }
 
@@ -239,7 +289,9 @@ patch_caddy() {
   local port="$2"
   local file=""
   if ! file="$(find_caddyfile)"; then
-    warn "Caddyfile не найден. Добавьте HTTPS сами:"
+    warn "Caddyfile не найден. Ищите: find /opt /etc -name Caddyfile"
+    warn "Или docker ps | grep -i caddy"
+    warn "Добавьте HTTPS сами:"
     cat >&2 <<EOF
 
 ${domain} {
@@ -417,6 +469,7 @@ setup_usage() {
   --bot NAME        username бота без @
   --brand NAME      название в кабинете
   --port N          порт на хосте (по умолчанию 3006)
+  --caddyfile PATH   свой Caddyfile (если скрипт его не нашёл)
   --support URL     ссылка поддержки
   -y, --yes         без вопросов, если всё определилось
   --skip-caddy      не трогать Caddyfile
@@ -433,7 +486,7 @@ setup() {
   need_cmd docker
   need_cmd python3
 
-  local domain="" bot="" brand="" port="3006" support="" yes=0 skip_caddy=0 skip_bot=0
+  local domain="" bot="" brand="" port="3006" support="" yes=0 skip_caddy=0 skip_bot=0 caddyfile=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --domain)
@@ -478,6 +531,14 @@ setup() {
         ;;
       -y|--yes)
         yes=1
+        shift
+        ;;
+      --caddyfile)
+        caddyfile="${2:-}"
+        shift 2
+        ;;
+      --caddyfile=*)
+        caddyfile="${1#*=}"
         shift
         ;;
       --skip-caddy)
@@ -543,6 +604,14 @@ setup() {
     echo "Домен пустой." >&2
     exit 1
   fi
+  case "$domain" in
+    *example.com|*example.org)
+      echo "«${domain}» — это пример из документации, не ваш сайт." >&2
+      echo "Запустите снова со своим доменом:" >&2
+      echo "  ./install.sh --domain кабинет.ваш-домен.ru" >&2
+      exit 1
+      ;;
+  esac
 
   if [ -z "$bot" ]; then
     if [ -t 0 ] && [ "$yes" -eq 0 ]; then
@@ -579,12 +648,17 @@ setup() {
   log "Сборка и запуск контейнера"
   install_compose
 
+  log "Жду ответ кабинета на :${port}"
   local code=""
-  code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${port}/dashboard" || true)"
-  if [ "$code" = "200" ] || [ "$code" = "307" ] || [ "$code" = "308" ] || [ "$code" = "302" ]; then
+  if code="$(wait_http "http://127.0.0.1:${port}/dashboard")"; then
     log "Кабинет отвечает на :${port} (HTTP ${code})"
   else
-    warn "Локально пока ${code:-нет ответа}. Смотрите: docker logs remnashop-web --tail 80"
+    warn "Локально пока ${code:-000}. Смотрите: docker logs remnashop-web --tail 80"
+  fi
+
+  if [ -n "$caddyfile" ]; then
+    CADDYFILE="$caddyfile"
+    export CADDYFILE
   fi
 
   if [ "$skip_caddy" -eq 0 ]; then

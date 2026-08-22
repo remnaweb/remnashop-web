@@ -23,19 +23,26 @@
 
 ## Быстрый старт
 
-Один скрипт: находит бота и Docker-сеть, собирает кабинет, вешает HTTPS в Caddy и включает кнопку **«Личный кабинет»**.
+Один скрипт. Сначала впиши домен в `install.conf`, потом запусти.
 
 ```bash
 git clone https://github.com/remnaweb/remnashop-web.git /opt/remnashop-web
 cd /opt/remnashop-web
-chmod +x install.sh
-./install.sh --domain cabinet.example.com
+cp install.conf.example install.conf
+nano install.conf
 ```
 
-Или одной командой:
+В файле заполни хотя бы это (свой домен, не example.com):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/remnaweb/remnashop-web/main/install.sh | bash -s -- --domain cabinet.example.com
+DOMAIN=lk.твой-домен.ru
+```
+
+Остальное можно оставить пустым — скрипт найдёт бота и сеть сам.
+
+```bash
+chmod +x install.sh
+./install.sh
 ```
 
 Останется URL Mini App в [@BotFather](https://t.me/BotFather). Письма (Resend/SMTP) — `./deploy.sh configure`. Подробности: [установка](docs/ru/install/installation.mdx).

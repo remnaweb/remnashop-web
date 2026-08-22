@@ -21,22 +21,29 @@ description: "Установка веб-кабинета и Telegram Mini App д
     sudo curl -fsSL https://get.docker.com | sh
     ```
 
-    Одна команда ставит кабинет: находит сеть бота (`remnashop` или `remnawave-network`), собирает контейнер, добавляет HTTPS в Caddy и включает кнопку **«Личный кабинет»**.
+    Одна команда ставит кабинет: находит сеть бота, собирает контейнер, добавляет HTTPS в Caddy и включает кнопку **«Личный кабинет»**.
 
     ```bash
     git clone https://github.com/remnaweb/remnashop-web.git /opt/remnashop-web
     cd /opt/remnashop-web
-    chmod +x install.sh
-    ./install.sh --domain cabinet.example.com
+    cp install.conf.example install.conf
+    nano install.conf
     ```
 
-    Или без клона:
+    Впиши свой домен (без `https://`), не example.com:
 
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/remnaweb/remnashop-web/main/install.sh | bash -s -- --domain cabinet.example.com
+    DOMAIN=lk.твой-домен.ru
     ```
 
-    Подставьте свой домен. Username бота скрипт берёт из токена RemnaShop (`getMe`). Код `/opt/remnashop` не меняется, только `.env` бота (`WEB_ENABLED`, `WEB_CABINET_URL`).
+    Остальные строки можно не трогать. Затем:
+
+    ```bash
+    chmod +x install.sh
+    ./install.sh
+    ```
+
+    Username бота скрипт берёт из токена RemnaShop. Код `/opt/remnashop` не меняется, только `.env` бота (`WEB_ENABLED`, `WEB_CABINET_URL`).
   </Step>
 
   <Step title="Configure">
@@ -74,17 +81,17 @@ description: "Установка веб-кабинета и Telegram Mini App д
   </Step>
 
   <Step title="Run it">
-    Проверка на сервере — `200` или редирект, не `502`:
+    Проверка на сервере — `200` или редирект, не `502` (домен — тот же, что в `install.conf`):
 
     ```bash
     curl -I http://127.0.0.1:3006/dashboard
-    curl -I https://cabinet.example.com/dashboard
+    curl -I https://ТВОЙ-ДОМЕН/dashboard
     ```
 
     В [@BotFather](https://t.me/BotFather): `/mybots` → ваш бот → **Bot Settings** → **Configure Mini App**.
 
-    * URL: `https://cabinet.example.com/dashboard`
-    * Domain: `cabinet.example.com`
+    * URL: `https://ТВОЙ-ДОМЕН/dashboard`
+    * Domain: `ТВОЙ-ДОМЕН`
 
     Откройте кабинет в браузере и кнопку **«Личный кабинет»** в боте.
   </Step>
@@ -112,7 +119,7 @@ description: "Установка веб-кабинета и Telegram Mini App д
 
 ```bash
 cd /opt/remnashop-web
-./install.sh --domain cabinet.example.com
+./install.sh
 ./deploy.sh ps
 ./deploy.sh logs
 ./deploy.sh restart

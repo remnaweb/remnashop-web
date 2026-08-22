@@ -1,0 +1,22 @@
+# Скопируй этот файл:  cp install.conf.example install.conf
+# Открой:              nano install.conf
+# Впиши свои значения и запусти:  ./install.sh
+
+# ОБЯЗАТЕЛЬНО. Домен кабинета БЕЗ https:// и БЕЗ слэша в конце.
+# Это твой DNS на этот сервер, не example.com.
+DOMAIN=
+
+# Username бота без @. Пусто = скрипт возьмёт из токена RemnaShop.
+BOT_USERNAME=
+
+# Название в шапке кабинета. Пусто = из RemnaShop.
+BRAND_NAME=
+
+# Ссылка поддержки, например https://t.me/username. Пусто = пропустить.
+SUPPORT_LINK=
+
+# Порт веб-морды на сервере.
+WEB_PORT=3006
+
+# Если Caddyfile скрипт не находит — полный путь, например /etc/caddy/Caddyfile
+CADDYFILE=

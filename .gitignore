@@ -6,4 +6,4 @@ node_modules
 data/*.json
 .DS_Store
 *.tgz
-tsconfig.tsbuildinfo
+install.conf
