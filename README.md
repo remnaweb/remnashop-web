@@ -24,7 +24,8 @@
 ## Быстрый старт
 
 ```bash
-mkdir -p /opt/remnashop-web && cd /opt/remnashop-web
+git clone https://github.com/remnaweb/remnashop-web.git /opt/remnashop-web
+cd /opt/remnashop-web
 chmod +x deploy.sh
 ./deploy.sh configure
 ./deploy.sh install
