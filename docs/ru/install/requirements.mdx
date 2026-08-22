@@ -1,0 +1,35 @@
+---
+title: "Требования"
+description: "Что подготовить перед установкой веб-морды"
+---
+
+<Warning>
+  Сначала должен работать [RemnaShop](https://remnashop.mintlify.app/install/installation). Веб-морда ставится рядом с ботом, не вместо него.
+</Warning>
+
+## Что нужно
+
+- Linux-сервер с Docker Engine и Docker Compose v2
+- Контейнеры `remnashop` и `remnashop-db`
+- Домен с HTTPS (Caddy / nginx / Cloudflare)
+- Username бота без `@` (BotFather)
+
+| Что подготовить | Пример | Где взять |
+| --- | --- | --- |
+| Публичный адрес кабинета | `https://cabinet.example.com` | Ваш DNS |
+| Username бота | `myvpnbot` | [@BotFather](https://t.me/BotFather) |
+| URL API RemnaShop | `http://remnashop:5000` | Docker-сеть бота |
+| Письма (по желанию) | Resend API key или SMTP | [Настройка писем](/install/email) |
+
+## Docker-сеть бота
+
+Веб-морда подключается к той же сети, что и RemnaShop.
+
+<CodeGroup>
+```bash Проверить сеть
+docker network ls | grep remnashop
+docker inspect remnashop --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
+```
+</CodeGroup>
+
+Обычно сеть называется `remnashop`. Если имя другое — подставьте его в `docker-compose.yml` → `networks.remnashop.name`.

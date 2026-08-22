@@ -1,0 +1,29 @@
+---
+title: "Что это"
+description: "Веб-кабинет и Telegram Mini App для бота RemnaShop"
+---
+
+**remnashop-web** — отдельная веб-морда для уже установленного [RemnaShop](https://remnashop.mintlify.app/docs/ru/overview/introduction).
+
+Пользователь нажимает **«Личный кабинет»** в боте и сразу попадает в кабинет: подписка, тарифы, оплата, устройства, промокод, рефералка.
+
+Код бота (`/opt/remnashop`) менять не нужно. Тарифы, цены и платёжки берутся из админки RemnaShop.
+
+<CardGroup cols={2}>
+  <Card title="Установка" icon="download" href="/install/installation">
+    Docker, .env и запуск за несколько шагов
+  </Card>
+  <Card title="Письма" icon="mail" href="/install/email">
+    Регистрация по почте и сброс пароля
+  </Card>
+  <Card title="Кнопка в боте" icon="device-mobile" href="/install/connect-bot">
+    «Личный кабинет» первой кнопкой в меню
+  </Card>
+  <Card title="Caddy" icon="shield" href="/reverse-proxies/caddy">
+    HTTPS для Mini App
+  </Card>
+</CardGroup>
+
+<Info>
+  Mini App Telegram работает только по HTTPS и только с домена, не с IP и не с HTTP.
+</Info>

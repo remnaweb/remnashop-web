@@ -1,0 +1,77 @@
+---
+title: "Кнопка в боте"
+description: "«Личный кабинет» первой кнопкой в меню RemnaShop"
+---
+
+Веб-морда сама кнопку в Telegram не рисует. Это делает **RemnaShop**, если включить веб-кабинет в его `.env`.
+
+После этого в главном меню бота **первой** появляется кнопка **«Личный кабинет»** (Mini App). Пользователь попадает в кабинет без ручного входа.
+
+<Danger>
+  Этот шаг в `.env` **бота** (`/opt/remnashop/.env`), не веб-морды.
+</Danger>
+
+---
+
+## Шаг 1. Переменные RemnaShop
+
+Откройте `.env` бота:
+
+<CodeGroup>
+```bash Редактирование .env бота
+cd /opt/remnashop && nano .env
+```
+</CodeGroup>
+
+Добавьте или раскомментируйте:
+
+```env
+WEB_ENABLED=true
+WEB_CABINET_URL=https://cabinet.example.com/dashboard
+APP_ORIGINS=https://cabinet.example.com
+```
+
+| Переменная | Зачем |
+| --- | --- |
+| `WEB_ENABLED=true` | Показать кнопку **«Личный кабинет»** первой в меню |
+| `WEB_CABINET_URL` | Куда открывать Mini App. Обязательно `https://` и путь `/dashboard` |
+| `APP_ORIGINS` | Разрешённый origin для входа из браузера / Mini App |
+
+<Tip>
+  Если Mini App открывается с второго домена (например `miniapp.example.com`), добавьте его в `APP_ORIGINS` через запятую.
+</Tip>
+
+Кнопка **«Подключиться»** ниже по меню остаётся: это ссылка подписки / Happ. Кабинет — отдельная первая кнопка.
+
+---
+
+## Шаг 2. Перезапуск бота
+
+Обычный `docker restart remnashop` **не** читает новый `.env`. Нужно:
+
+<CodeGroup>
+```bash Перезапуск с новым .env
+cd /opt/remnashop && docker compose up -d remnashop
+```
+</CodeGroup>
+
+Путь к compose у себя уточните.
+
+---
+
+## Шаг 3. BotFather
+
+1. [@BotFather](https://t.me/BotFather) → `/mybots` → ваш бот.
+2. **Bot Settings** → **Configure Mini App** (или Menu Button).
+3. URL: `https://cabinet.example.com/dashboard`.
+4. Domain для Login Widget: `cabinet.example.com` (без `https://`).
+
+<Warning>
+  Mini App по HTTP или по IP не работает. Сначала настройте [Caddy](/reverse-proxies/caddy).
+</Warning>
+
+---
+
+## Проверка
+
+Откройте бота → главное меню. Сверху должна быть **«Личный кабинет»**. Нажатие сразу открывает кабинет, без экрана входа.

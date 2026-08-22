@@ -1,0 +1,23 @@
+---
+title: "Частые ошибки"
+description: "Что проверить, если кабинет, письма или Mini App не работают"
+---
+
+```bash
+./deploy.sh ps
+curl -I http://127.0.0.1:3006/dashboard
+curl -I https://cabinet.example.com/dashboard
+docker logs remnashop-web --tail 80
+```
+
+| Симптом | Что проверить |
+| --- | --- |
+| `502` | Запущен ли контейнер, правильный ли `reverse_proxy` |
+| Снова просит вход | `WEB_CABINET_URL` без `/dashboard`; Mini App открыт как обычная ссылка, по HTTP или по IP; бот не перезапущен через `docker compose up -d` |
+| Нет кнопки «Личный кабинет» | В `.env` бота `WEB_ENABLED=true` и заполнен `WEB_CABINET_URL`. См. [Кнопка в боте](/install/connect-bot) |
+| `network remnashop not found` | Имя сети из `docker inspect remnashop` подставьте в compose |
+| «Письма не настроены» | Задайте `RESEND_API_KEY` или `SMTP_*`. См. [Письма](/install/email) |
+| Письмо не приходит | Домен не подтверждён в Resend; неверный SMTP-пароль; письмо в спаме |
+| Internal Server Error при оплате | Ключи шлюза в админке бота (часто YooKassa 401), не веб-морда |
+| Промокод не применяется | Код должен существовать в админке RemnaShop |
+| Вкладка «Дизайн» не видна | Роль `OWNER` / `ADMIN` / `DEV` в боте, либо `WEB_THEME_ADMIN_IDS` |

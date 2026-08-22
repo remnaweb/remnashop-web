@@ -1,0 +1,23 @@
+---
+title: "Caddy"
+description: "HTTPS для кабинета и Telegram Mini App"
+---
+
+По умолчанию веб-морда слушает только `127.0.0.1:3006`. В интернет её нельзя открывать напрямую.
+
+<Danger>
+  Telegram Mini App не работает по HTTP и по IP. Нужен домен с HTTPS.
+</Danger>
+
+Минимальный Caddyfile:
+
+```caddy
+cabinet.example.com {
+  encode gzip zstd
+  reverse_proxy 127.0.0.1:3006
+}
+```
+
+Перезагрузите Caddy и откройте `https://cabinet.example.com/dashboard` — должна открыться страница входа.
+
+Дальше подключите кнопку в боте: [Кнопка в боте](/install/connect-bot).

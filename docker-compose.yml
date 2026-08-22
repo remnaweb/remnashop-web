@@ -1,0 +1,33 @@
+services:
+  remnashop-web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:-}
+        NEXT_PUBLIC_BRAND_NAME: ${NEXT_PUBLIC_BRAND_NAME:-VPN}
+        NEXT_PUBLIC_SUPPORT_LINK: ${NEXT_PUBLIC_SUPPORT_LINK:-}
+    image: remnashop-web:latest
+    container_name: remnashop-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3006}:3006"
+    env_file:
+      - .env
+    environment:
+      REMNASHOP_URL: ${REMNASHOP_URL:-http://remnashop:5000}
+      REMNASHOP_PG_CONTAINER: ${REMNASHOP_PG_CONTAINER:-remnashop-db}
+      REMNASHOP_APP_CONTAINER: ${REMNASHOP_APP_CONTAINER:-remnashop}
+      REMNASHOP_PG_USER: ${REMNASHOP_PG_USER:-remnashop}
+      REMNASHOP_PG_DATABASE: ${REMNASHOP_PG_DATABASE:-remnashop}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+    networks:
+      - remnashop
+
+networks:
+  remnashop:
+    name: remnashop
+    external: true

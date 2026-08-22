@@ -1,0 +1,27 @@
+---
+title: "Обновление"
+description: "Как обновить веб-морду без потери настроек"
+---
+
+<CodeGroup>
+```bash Обновление
+cd /opt/remnashop-web
+cp -p .env ".env.backup-$(date +%Y%m%d-%H%M%S)"
+git pull --ff-only
+./deploy.sh update
+```
+</CodeGroup>
+
+Если проекта нет в git — скопируйте новые файлы поверх `/opt/remnashop-web`, **не затирая** `.env` и папку `data/` (там тема кабинета).
+
+<Warning>
+  Не запускайте `docker compose down -v`, если нужно сохранить `data/theme.json`.
+</Warning>
+
+Полезные команды:
+
+```bash
+./deploy.sh ps
+./deploy.sh logs
+./deploy.sh restart
+```

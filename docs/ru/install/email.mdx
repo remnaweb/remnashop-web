@@ -1,0 +1,104 @@
+---
+title: "Письма"
+description: "Коды на почту при регистрации и сбросе пароля"
+---
+
+Без этой настройки вход через **Telegram** работает. Регистрация по email и «забыли пароль» — нет: пользователь увидит ошибку, что письма не настроены.
+
+Нужен **один** вариант: Resend (проще) или свой SMTP.
+
+Отправитель задаётся так:
+
+```env
+MAIL_FROM=noreply@yourdomain.com
+```
+
+Домен в `MAIL_FROM` должен быть вашим (или верифицированным в Resend). Иначе письма уйдут в спам или сервис их отклонит.
+
+---
+
+<Tabs>
+  <Tab title="Resend (рекомендуем)">
+    Бесплатный тариф Resend хватает для кодов подтверждения.
+
+    <Steps>
+      <Step title="Зарегистрируйтесь">
+        Откройте [resend.com](https://resend.com), создайте аккаунт.
+      </Step>
+      <Step title="Подтвердите домен">
+        В панели Resend: **Domains** → добавьте свой домен → пропишите DNS-записи (DKIM / SPF), которые покажет сайт.
+      </Step>
+      <Step title="Создайте API-ключ">
+        **API Keys** → Create. Скопируйте ключ вида `re_...`.
+      </Step>
+      <Step title="Пропишите в .env веб-морды">
+        ```env
+        MAIL_PROVIDER=resend
+        MAIL_FROM=noreply@yourdomain.com
+        RESEND_API_KEY=re_xxxxxxxx
+        RESEND_FROM=My VPN <noreply@yourdomain.com>
+        ```
+      </Step>
+      <Step title="Перезапустите веб-морду">
+        ```bash
+        cd /opt/remnashop-web
+        ./deploy.sh restart
+        ```
+
+        `NEXT_PUBLIC_*` менять не нужно — ключ Resend подхватывается без пересборки.
+      </Step>
+    </Steps>
+
+    <Tip>
+      Пока домен не подтверждён, Resend шлёт письма только на email вашего аккаунта. Для продакшена домен обязателен.
+    </Tip>
+  </Tab>
+
+  <Tab title="SMTP">
+    Подойдёт почта хостинга, Yandex 360, Google Workspace, Timeweb, Beget.
+
+    ```env
+    MAIL_PROVIDER=smtp
+    MAIL_FROM=noreply@yourdomain.com
+    SMTP_HOST=smtp.yourdomain.com
+    SMTP_PORT=587
+    SMTP_SECURE=false
+    SMTP_USER=noreply@yourdomain.com
+    SMTP_PASSWORD=пароль_ящика
+    ```
+
+    <Accordion title="Типовые SMTP">
+      | Сервис | SMTP_HOST | Порт |
+      | --- | --- | --- |
+      | Yandex | `smtp.yandex.ru` | `465` + `SMTP_SECURE=true` |
+      | Mail.ru | `smtp.mail.ru` | `465` + `SMTP_SECURE=true` |
+      | Google | `smtp.gmail.com` | `587` |
+      | Timeweb | смотрите в панели почты | обычно `587` |
+    </Accordion>
+
+    После правки:
+
+    ```bash
+    cd /opt/remnashop-web
+    ./deploy.sh restart
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Проверка
+
+1. Откройте `https://cabinet.example.com/login`.
+2. Вкладка **Почта** → Регистрация → укажите свой email.
+3. Должно прийти письмо с кодом на 15 минут.
+
+<Warning>
+  Сброс пароля ходит в базу RemnaShop через Docker (`remnashop-db`). Контейнер веб-морды должен видеть `docker.sock` — в `docker-compose.yml` это уже есть.
+</Warning>
+
+Мастер установки тоже спрашивает про письма:
+
+```bash
+./deploy.sh configure
+```

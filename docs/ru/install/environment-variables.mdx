@@ -1,0 +1,46 @@
+---
+title: "Переменные окружения"
+description: "Все настройки .env веб-морды"
+---
+
+Файл: `/opt/remnashop-web/.env` (Docker) или `.env.local` (PM2).
+
+`NEXT_PUBLIC_*` попадают в сборку образа. После их смены: `./deploy.sh update`.
+
+## Основные
+
+| Переменная | Обязательная | По умолчанию | Описание |
+| --- | :---: | --- | --- |
+| `REMNASHOP_URL` | ✅ | — | API бота. В Docker-сети: `http://remnashop:5000`. На хосте: `http://127.0.0.1:5000` |
+| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | ✅ | — | Username бота без `@` — виджет входа |
+| `NEXT_PUBLIC_BRAND_NAME` | ❌ | `VPN` | Название в интерфейсе и письмах |
+| `NEXT_PUBLIC_SUPPORT_LINK` | ❌ | — | Кнопка «Написать в поддержку» |
+| `WEB_PORT` | ❌ | `3006` | Порт на хосте |
+| `WEB_THEME_ADMIN_IDS` | ❌ | — | Telegram ID админов через запятую, если роль в БД не подтянулась |
+
+## Письма
+
+Нужен Resend **или** SMTP. Подробности: [Письма](/install/email).
+
+| Переменная | Обязательная | Описание |
+| --- | :---: | --- |
+| `MAIL_FROM` | для писем | Адрес отправителя |
+| `MAIL_PROVIDER` | ❌ | `resend` или `smtp`. Если пусто — выбирается сам |
+| `RESEND_API_KEY` | для Resend | Ключ с [resend.com](https://resend.com) |
+| `RESEND_FROM` | ❌ | Вид «Имя \<email\>». Если пусто — берётся `MAIL_FROM` |
+| `SMTP_HOST` | для SMTP | Хост SMTP |
+| `SMTP_PORT` | ❌ | По умолчанию `587` |
+| `SMTP_SECURE` | ❌ | `true` для порта `465` |
+| `SMTP_USER` | ❌ | Логин |
+| `SMTP_PASSWORD` | ❌ | Пароль ящика |
+
+## RemnaShop на том же хосте
+
+Нужны для сброса пароля и флага «почта подтверждена» у Telegram-пользователей.
+
+| Переменная | По умолчанию |
+| --- | --- |
+| `REMNASHOP_PG_CONTAINER` | `remnashop-db` |
+| `REMNASHOP_APP_CONTAINER` | `remnashop` |
+| `REMNASHOP_PG_DATABASE` | `remnashop` |
+| `REMNASHOP_PG_USER` | `remnashop` |

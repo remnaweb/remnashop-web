@@ -1,0 +1,70 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "remnashop-web",
+  "colors": {
+    "primary": "#22D3EE",
+    "light": "#22D3EE",
+    "dark": "#0a0b12"
+  },
+  "navigation": {
+    "languages": [
+      {
+        "language": "ru",
+        "groups": [
+          {
+            "group": "Обзор",
+            "pages": ["docs/ru/overview/introduction"]
+          },
+          {
+            "group": "Начало",
+            "pages": [
+              "docs/ru/install/requirements",
+              "docs/ru/install/installation",
+              "docs/ru/install/email",
+              "docs/ru/install/connect-bot",
+              "docs/ru/install/environment-variables",
+              "docs/ru/install/update"
+            ]
+          },
+          {
+            "group": "Реверс прокси",
+            "pages": ["docs/ru/reverse-proxies/caddy"]
+          },
+          {
+            "group": "Справка",
+            "pages": ["docs/ru/install/troubleshooting"]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "RemnaShop",
+        "href": "https://remnashop.mintlify.app/docs/ru/overview/introduction"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {}
+  },
+  "background": {
+    "color": {
+      "dark": "#0a0b12",
+      "light": "#0a0b12"
+    },
+    "decoration": "grid"
+  },
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "styling": {
+    "codeblocks": "dark"
+  },
+  "icons": {
+    "library": "tabler"
+  }
+}
