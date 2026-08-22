@@ -1,79 +1,54 @@
 ---
 title: "Кнопка в боте"
-description: "«Личный кабинет» первой кнопкой в меню RemnaShop"
+description: "Одна кнопка «Личный кабинет» вместо меню магазина"
 ---
 
-Веб-морда сама кнопку в Telegram не рисует. Это делает **RemnaShop**, если включить веб-кабинет в его `.env`.
+При установке веб-морды скрипт сам включает Mini App и **убирает дубли** в боте. Подписка, устройства, инвайт и поддержка остаются в кабинете.
 
-`./install.sh --domain cabinet.example.com` прописывает эти переменные и перезапускает бота сам. Ниже — ручной вариант.
+В главном меню бота остаются:
 
-После этого в главном меню бота **первой** появляется кнопка **«Личный кабинет»** (Mini App). Пользователь попадает в кабинет без ручного входа.
+- **«Личный кабинет»** — Mini App (подключиться, тарифы, оплата, устройства, рефералка, помощь)
+- ваши кнопки из редактора меню (соглашение, политика)
+- **«Панель управления»** — только админам
+- пробный период, если он включён
+
+Скрываются: **Подключиться**, **Устройства**, **Подписка**, **Пригласить**, **Поддержка**.
+
+`./install.sh` делает это сам. Уже стоящий бот:
+
+```bash
+cd /opt/remnashop-web
+./deploy.sh patch-menu
+```
 
 <Danger>
-  Этот шаг в `.env` **бота** (`/opt/remnashop/.env`), не веб-морды.
+  Патч правит файл меню **внутри контейнера** `remnashop`. После `docker compose pull` / обновления образа бота запустите `./deploy.sh patch-menu` снова.
 </Danger>
 
 ---
 
-## Шаг 1. Переменные RemnaShop
+## Переменные RemnaShop
 
-Откройте `.env` бота:
-
-<CodeGroup>
-```bash Редактирование .env бота
-cd /opt/remnashop && nano .env
-```
-</CodeGroup>
-
-Добавьте или раскомментируйте:
+В `.env` бота (`/opt/remnashop/.env`):
 
 ```env
 WEB_ENABLED=true
-WEB_CABINET_URL=https://cabinet.example.com/dashboard
-APP_ORIGINS=https://cabinet.example.com
+WEB_CABINET_URL=https://ТВОЙ-ДОМЕН/dashboard
+APP_ORIGINS=https://ТВОЙ-ДОМЕН
 ```
 
-| Переменная | Зачем |
-| --- | --- |
-| `WEB_ENABLED=true` | Показать кнопку **«Личный кабинет»** первой в меню |
-| `WEB_CABINET_URL` | Куда открывать Mini App. Обязательно `https://` и путь `/dashboard` |
-| `APP_ORIGINS` | Разрешённый origin для входа из браузера / Mini App |
+Затем:
 
-<Tip>
-  Если Mini App открывается с второго домена (например `miniapp.example.com`), добавьте его в `APP_ORIGINS` через запятую.
-</Tip>
-
-Кнопка **«Подключиться»** ниже по меню остаётся: это ссылка подписки / Happ. Кабинет — отдельная первая кнопка.
-
----
-
-## Шаг 2. Перезапуск бота
-
-Обычный `docker restart remnashop` **не** читает новый `.env`. Нужно:
-
-<CodeGroup>
-```bash Перезапуск с новым .env
+```bash
 cd /opt/remnashop && docker compose up -d remnashop
+cd /opt/remnashop-web && ./deploy.sh patch-menu
 ```
-</CodeGroup>
-
-Путь к compose у себя уточните.
 
 ---
 
-## Шаг 3. BotFather
+## BotFather
 
 1. [@BotFather](https://t.me/BotFather) → `/mybots` → ваш бот.
-2. **Bot Settings** → **Configure Mini App** (или Menu Button).
-3. URL: `https://cabinet.example.com/dashboard`.
-4. Domain для Login Widget: `cabinet.example.com` (без `https://`).
-
-<Warning>
-  Mini App по HTTP или по IP не работает. Сначала настройте [Caddy](/reverse-proxies/caddy).
-</Warning>
-
----
-
-## Проверка
-
-Откройте бота → главное меню. Сверху должна быть **«Личный кабинет»**. Нажатие сразу открывает кабинет, без экрана входа.
+2. **Bot Settings** → **Configure Mini App**.
+3. URL: `https://ТВОЙ-ДОМЕН/dashboard`.
+4. Domain: `ТВОЙ-ДОМЕН` (без `https://`).

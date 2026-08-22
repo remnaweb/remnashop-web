@@ -318,6 +318,7 @@ EOF
 patch_remnashop_env() {
   local dir="$1"
   local domain="$2"
+  local container="${3:-remnashop}"
   local env_file="${dir}/.env"
   local origin="https://${domain}"
   local cabinet="${origin}/dashboard"
@@ -347,6 +348,30 @@ patch_remnashop_env() {
     (cd "$dir" && compose_up up -d remnashop)
   else
     warn "docker compose бота не найден. Выполните: cd ${dir} && docker compose up -d remnashop"
+  fi
+  patch_remnashop_menu "$container"
+}
+
+patch_remnashop_menu() {
+  local container="${1:-remnashop}"
+  local patch_src="${ROOT}/scripts/patch_remnashop_menu.py"
+  local inner_root="/opt/remnashop"
+  if [ ! -f "$patch_src" ]; then
+    warn "Нет ${patch_src} — меню бота не сжато"
+    return 1
+  fi
+  if ! docker inspect "$container" >/dev/null 2>&1; then
+    warn "Контейнер ${container} не найден — меню не патчим"
+    return 1
+  fi
+  log "Сжимаю меню бота: одна кнопка «Личный кабинет», без устройств/подписки/инвайта/поддержки"
+  docker cp "$patch_src" "${container}:/tmp/patch_remnashop_menu.py"
+  if docker exec "$container" python3 /tmp/patch_remnashop_menu.py "$inner_root"; then
+    docker restart "$container" >/dev/null
+    log "Меню бота обновлено, контейнер перезапущен"
+  else
+    warn "Патч меню не применился (другая версия RemnaShop). Кнопки в боте как были."
+    return 1
   fi
 }
 
@@ -669,7 +694,7 @@ setup() {
   if [ "$skip_bot" -eq 0 ]; then
     if [ -n "$bot_dir" ]; then
       log "Кнопка «Личный кабинет» в боте"
-      patch_remnashop_env "$bot_dir" "$domain" || true
+      patch_remnashop_env "$bot_dir" "$domain" "$container" || true
     else
       warn "Каталог RemnaShop не найден. В его .env вручную:"
       cat >&2 <<EOF
@@ -708,6 +733,7 @@ remnashop-web — установка веб-кабинета RemnaShop
   ./deploy.sh configure   только .env вопросами
   ./deploy.sh install     только собрать и запустить Docker
   ./deploy.sh setup       то же, что ./install.sh
+  ./deploy.sh patch-menu   спрятать кнопки магазина в боте (оставить кабинет)
   ./deploy.sh update      git pull и пересборка
   ./deploy.sh logs        логи контейнера
   ./deploy.sh ps          состояние
@@ -723,6 +749,7 @@ case "$cmd" in
     shift
     setup "$@"
     ;;
+  patch-menu) patch_remnashop_menu "${2:-remnashop}" ;;
   update) update ;;
   logs) compose_up logs -f remnashop-web ;;
   ps) compose_up ps ;;
