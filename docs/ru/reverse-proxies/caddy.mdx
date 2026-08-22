@@ -5,6 +5,8 @@ description: "HTTPS для кабинета и Telegram Mini App"
 
 По умолчанию веб-морда слушает только `127.0.0.1:3006`. В интернет её нельзя открывать напрямую.
 
+`./install.sh --domain cabinet.example.com` сам добавит сайт в `/etc/caddy/Caddyfile` (если файл есть) и сделает `reload`. Ниже — ручная запись.
+
 <Danger>
   Telegram Mini App не работает по HTTP и по IP. Нужен домен с HTTPS.
 </Danger>

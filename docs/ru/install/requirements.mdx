@@ -32,4 +32,4 @@ docker inspect remnashop --format '{{range $k,$v := .NetworkSettings.Networks}}{
 ```
 </CodeGroup>
 
-Обычно сеть называется `remnashop`. Если имя другое — подставьте его в `docker-compose.yml` → `networks.remnashop.name`.
+Обычно сеть называется `remnashop` или `remnawave-network`. `./install.sh` подставляет имя сам. Вручную: `REMNASHOP_DOCKER_NETWORK` в `.env`.

@@ -29,5 +29,5 @@ services:
 
 networks:
   remnashop:
-    name: remnashop
+    name: ${REMNASHOP_DOCKER_NETWORK:-remnashop}
     external: true

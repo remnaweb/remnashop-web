@@ -21,53 +21,35 @@ description: "Установка веб-кабинета и Telegram Mini App д
     sudo curl -fsSL https://get.docker.com | sh
     ```
 
-    Склонируйте репозиторий:
+    Одна команда ставит кабинет: находит сеть бота (`remnashop` или `remnawave-network`), собирает контейнер, добавляет HTTPS в Caddy и включает кнопку **«Личный кабинет»**.
 
     ```bash
     git clone https://github.com/remnaweb/remnashop-web.git /opt/remnashop-web
     cd /opt/remnashop-web
-    chmod +x deploy.sh
+    chmod +x install.sh
+    ./install.sh --domain cabinet.example.com
     ```
 
-    Проверьте, что веб-морда видит Docker-сеть бота. Обычно она называется `remnashop`:
+    Или без клона:
 
     ```bash
-    docker network ls | grep remnashop
-    docker inspect remnashop --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
+    curl -fsSL https://raw.githubusercontent.com/remnaweb/remnashop-web/main/install.sh | bash -s -- --domain cabinet.example.com
     ```
 
-    Если имя другое — подставьте его в `docker-compose.yml` → `networks.remnashop.name`.
+    Подставьте свой домен. Username бота скрипт берёт из токена RemnaShop (`getMe`). Код `/opt/remnashop` не меняется, только `.env` бота (`WEB_ENABLED`, `WEB_CABINET_URL`).
   </Step>
 
   <Step title="Configure">
-    Мастер спросит username бота, название, поддержку, URL API, порт и письма (Resend или SMTP):
+    Вход через Telegram работает сразу. Письма (регистрация / сброс пароля) — по желанию:
 
     ```bash
+    cd /opt/remnashop-web
     ./deploy.sh configure
     ```
 
-    Без мастера:
+    Выберите Resend или SMTP. Без этого пункт «Пропустить» — нормально.
 
-    ```bash
-    cp .env.example .env
-    nano .env
-    ```
-
-    Минимальный `.env` веб-морды:
-
-    ```env
-    REMNASHOP_URL=http://remnashop:5000
-    NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=myvpnbot
-    NEXT_PUBLIC_BRAND_NAME=My VPN
-    NEXT_PUBLIC_SUPPORT_LINK=https://t.me/mysupport
-    WEB_PORT=3006
-    ```
-
-    Если веб-морда запущена на хосте, а не в Docker-сети бота, укажите `REMNASHOP_URL=http://127.0.0.1:5000`.
-
-    **Письма** (регистрация по почте и сброс пароля). Нужен один вариант. Без этого вход через Telegram работает, почта — нет.
-
-    Resend (рекомендуем):
+    Resend:
 
     ```env
     MAIL_PROVIDER=resend
@@ -76,7 +58,7 @@ description: "Установка веб-кабинета и Telegram Mini App д
     RESEND_FROM=My VPN <noreply@yourdomain.com>
     ```
 
-    Свой SMTP:
+    SMTP:
 
     ```env
     MAIL_PROVIDER=smtp
@@ -88,48 +70,23 @@ description: "Установка веб-кабинета и Telegram Mini App д
     SMTP_PASSWORD=change_me
     ```
 
-    Домен в `MAIL_FROM` должен быть вашим. Для Resend подтвердите домен в панели (DKIM / SPF), иначе письма уйдут в спам или не отправятся.
+    Домен в `MAIL_FROM` должен быть вашим. Для Resend подтвердите домен (DKIM / SPF). После смены `NEXT_PUBLIC_*`: `./deploy.sh update`.
   </Step>
 
   <Step title="Run it">
-    Соберите и запустите контейнер:
-
-    ```bash
-    ./deploy.sh install
-    ```
-
-    Проверка на сервере — должен быть `200` или редирект, не `502`:
+    Проверка на сервере — `200` или редирект, не `502`:
 
     ```bash
     curl -I http://127.0.0.1:3006/dashboard
+    curl -I https://cabinet.example.com/dashboard
     ```
 
-    Повесьте HTTPS. Mini App без этого не откроется:
+    В [@BotFather](https://t.me/BotFather): `/mybots` → ваш бот → **Bot Settings** → **Configure Mini App**.
 
-    ```caddy
-    cabinet.example.com {
-      encode gzip zstd
-      reverse_proxy 127.0.0.1:3006
-    }
-    ```
+    * URL: `https://cabinet.example.com/dashboard`
+    * Domain: `cabinet.example.com`
 
-    В `.env` **бота** (`/opt/remnashop/.env`), не веб-морды, включите кабинет — кнопка **«Личный кабинет»** станет первой в меню:
-
-    ```env
-    WEB_ENABLED=true
-    WEB_CABINET_URL=https://cabinet.example.com/dashboard
-    APP_ORIGINS=https://cabinet.example.com
-    ```
-
-    URL с `https://` и путём `/dashboard`. Обычный `docker restart remnashop` новый `.env` не читает:
-
-    ```bash
-    cd /opt/remnashop && docker compose up -d remnashop
-    ```
-
-    В [@BotFather](https://t.me/BotFather): `/mybots` → ваш бот → **Bot Settings** → **Configure Mini App**. URL: `https://cabinet.example.com/dashboard`. Domain для Login Widget: `cabinet.example.com`.
-
-    Откройте `https://cabinet.example.com/dashboard` в браузере и кнопку **«Личный кабинет»** в боте.
+    Откройте кабинет в браузере и кнопку **«Личный кабинет»** в боте.
   </Step>
 </Steps>
 
@@ -144,6 +101,7 @@ description: "Установка веб-кабинета и Telegram Mini App д
 | `NEXT_PUBLIC_BRAND_NAME` | ❌ | Название в интерфейсе и письмах |
 | `NEXT_PUBLIC_SUPPORT_LINK` | ❌ | Кнопка поддержки |
 | `WEB_PORT` | ❌ | Порт на хосте, по умолчанию `3006` |
+| `REMNASHOP_DOCKER_NETWORK` | ❌ | Сеть бота. Часто `remnashop` или `remnawave-network` |
 | `MAIL_FROM` | для писем | Адрес отправителя |
 | `MAIL_PROVIDER` | ❌ | `resend` или `smtp` |
 | `RESEND_API_KEY` | для Resend | Ключ с [resend.com](https://resend.com) |
@@ -154,6 +112,7 @@ description: "Установка веб-кабинета и Telegram Mini App д
 
 ```bash
 cd /opt/remnashop-web
+./install.sh --domain cabinet.example.com
 ./deploy.sh ps
 ./deploy.sh logs
 ./deploy.sh restart
@@ -169,7 +128,7 @@ cd /opt/remnashop-web
 | `502` | Контейнер запущен, `reverse_proxy` смотрит на `127.0.0.1:3006` |
 | Снова просит вход | `WEB_CABINET_URL` без `/dashboard`; Mini App открыт по HTTP или по IP; бот не перезапущен через `docker compose up -d` |
 | Нет кнопки «Личный кабинет» | В `.env` бота `WEB_ENABLED=true` и заполнен `WEB_CABINET_URL` |
-| `network remnashop not found` | Имя сети из `docker inspect remnashop` подставьте в compose |
+| `network ... not found` | В `.env` укажите `REMNASHOP_DOCKER_NETWORK=` имя из `docker inspect remnashop` |
 | «Письма не настроены» | Задайте `RESEND_API_KEY` или `SMTP_*` |
 | Ошибка оплаты | Ключи шлюза в админке RemnaShop, не в веб-морде |
 
